@@ -19,7 +19,7 @@ Main() {
     ParseStringTimeSpan
     CalculateSecondsSinceLastReboot
     CalculateDateOfLastBoot
-    echo "$BootDate"
+    echo "Last boot date: $BootDate"
 }
 
 GetTimeSinceLastBoot() {
@@ -49,7 +49,8 @@ CalculateDateOfLastBoot() {
     # $(( )) to calculate math expresion
     BootDateSeconds=$((CurrentDate - TotalSeconds))
     # date -r to convert date from seconds since January 1, 1970 to standard format
-    BootDate=$(date -r $BootDateSeconds)
+    # Next define output format for calulated date
+    BootDate=$(date -r $BootDateSeconds "+%Y-%m-%d %H:%M:%S")
 }
 
 Main

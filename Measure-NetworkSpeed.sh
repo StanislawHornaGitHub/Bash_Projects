@@ -6,6 +6,7 @@
 
 ### INPUTS
 # 1. DEBUG - false to prevent displaing results in console
+# 2. OutputFile - File path of result destination
 
 ### OUTPUTS
 # Month

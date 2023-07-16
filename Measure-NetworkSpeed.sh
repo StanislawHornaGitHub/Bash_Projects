@@ -64,7 +64,13 @@ Main() {
 }
 
 TestPackageInstalled() {
+    MacOS="false"
+    if [ $(lsb_release -d | awk '/Description:*/{getline; print $2}') = "Ubuntu" ]; then
+        return
+    fi
+
     if [ "$(brew list | grep $PackageName)" != $PackageName ]; then
+        MacOS="true"
         echo "Cannot run the $PackageName, because it is not installed"
         exit 1
     fi
@@ -74,7 +80,11 @@ GetISP() {
     Tracert=$(traceroute 1.1.1.1)
     IFS=$'\n'
     set -- $Tracert
+    if [ "$MacOS" = "true" ]; then
     GatewayString=$2
+    else
+    GatewayString=$3
+    fi
     IFS=$' '
     set -- $GatewayString
     GatewayIP=$2
@@ -87,19 +97,25 @@ GetISP() {
 }
 
 GetInterfaceToMeasure() {
-    WiFiInterfaceID=$(networksetup -listallhardwareports | awk '/Hardware Port: Wi-Fi/{getline; print $2}')
-    InterfaceList=$(networksetup -listallhardwareports | awk '/Hardware Port:*/{getline; print $2}')
-    NICtoMeasure="$WiFiInterfaceID"
-    printf '%s\n' "$InterfaceList" | while IFS= read -r NIC; do
-        temp=$(ipconfig getifaddr $NIC)
-        if [ -n "$temp" ] && [ "$NIC" != "$WiFiInterfaceID" ]; then
-            NICtoMeasure=$NIC
-        fi
-    done
+    if [ "$MacOS" = "true"  ]; then 
+        WiFiInterfaceID=$(networksetup -listallhardwareports | awk '/Hardware Port: Wi-Fi/{getline; print $2}')
+        InterfaceList=$(networksetup -listallhardwareports | awk '/Hardware Port:*/{getline; print $2}')
+        NICtoMeasure="$WiFiInterfaceID"
+        printf '%s\n' "$InterfaceList" | while IFS= read -r NIC; do
+            temp=$(ipconfig getifaddr $NIC)
+            if [ -n "$temp" ] && [ "$NIC" != "$WiFiInterfaceID" ]; then
+                NICtoMeasure=$NIC
+            fi
+        done
+    fi
 }
 
 GetSpeedTest() {
-    SpeedTest=$(speedtest -I "$NICtoMeasure" -f csv)
+    if [ "$MacOS" = "true"  ]; then 
+        SpeedTest=$(speedtest -I "$NICtoMeasure" -f csv)
+    else
+        SpeedTest=$(speedtest -f csv)
+    fi
 }
 
 FormatSpeedTestOutput() {
